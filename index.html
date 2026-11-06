@@ -276,7 +276,7 @@ body{-webkit-touch-callout:none}
   <div id="hdr-title">HUTER &amp; SÖHNE</div>
 </div>
 <div id="yrbar">
-  <span id="yrleft"><span id="yrnum">–</span><span id="ver">v8</span></span>
+  <span id="yrleft"><span id="yrnum">–</span><span id="ver">v2</span></span>
   <button id="heute-btn">HEUTE</button>
 </div>
 <div id="app"></div>
@@ -614,7 +614,7 @@ async function runDiag(){
   const standalone=window.matchMedia('(display-mode: standalone)').matches
                  ||window.navigator.standalone===true;
   let out='';
-  out+=diagLine('Version','v8');
+  out+=diagLine('Version','v2');
   out+=diagLine('Adresse',base);
   out+=diagLine('HTTPS',location.protocol,location.protocol==='https:');
   out+=diagLine('Modus',standalone?'App (ohne Browserleiste)':'im Browser');
