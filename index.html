@@ -240,6 +240,22 @@ body{-webkit-touch-callout:none}
 .phint{text-align:center;font-size:12px;opacity:.55;margin-top:12px}
 .pclose{text-align:center;font-size:13px;opacity:.7;margin-top:8px;cursor:pointer;padding:10px}
 
+/* Diagnose */
+#diag{position:fixed;inset:0;z-index:400;display:none;background:rgba(0,0,0,.55);
+  align-items:center;justify-content:center;padding:16px}
+#diag.show{display:flex}
+#diagcard{background:#fff;border-radius:16px;padding:18px;width:100%;max-width:420px;
+  max-height:80vh;overflow:auto;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+#diagcard h3{font-size:16px;color:#1c1c1e;margin-bottom:10px;text-align:center}
+.dline{font-size:13px;color:#3a3a3e;padding:6px 0;border-bottom:.5px solid #e2e2e6;
+  display:flex;gap:8px;align-items:flex-start;line-height:1.35;word-break:break-all}
+.dline b{font-weight:600;flex-shrink:0}
+.ok{color:#1b7f3b;font-weight:700}
+.bad{color:#c0392b;font-weight:700}
+#diagclose{margin-top:14px;width:100%;border:none;border-radius:10px;padding:12px;
+  font-size:15px;font-weight:600;font-family:inherit;color:#fff;cursor:pointer;
+  background:linear-gradient(to bottom,var(--blau-hell),var(--blau) 60%,var(--blau-dunkel))}
+
 /* Toast */
 #toast{
   position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));
@@ -260,7 +276,7 @@ body{-webkit-touch-callout:none}
   <div id="hdr-title">HUTER &amp; SÖHNE</div>
 </div>
 <div id="yrbar">
-  <span id="yrleft"><span id="yrnum">–</span><span id="ver">v7</span></span>
+  <span id="yrleft"><span id="yrnum">–</span><span id="ver">v8</span></span>
   <button id="heute-btn">HEUTE</button>
 </div>
 <div id="app"></div>
@@ -274,6 +290,12 @@ body{-webkit-touch-callout:none}
   <div class="phint" id="p-range"></div>
   <div class="pclose" onclick="clearSel()">✕ Schließen</div>
 </div>
+
+<div id="diag"><div id="diagcard">
+  <h3>Selbsttest</h3>
+  <div id="diaglist"></div>
+  <button id="diagclose">Schließen</button>
+</div></div>
 
 <div id="toast"></div>
 
@@ -572,6 +594,59 @@ function clearSel(){
   if(selB){selB.el.classList.remove('sel-b');selB=null;}
   document.getElementById('popup').classList.remove('show');
 }
+
+/* ── Selbsttest: Long-Press auf die Versionsnummer ──
+   Prüft, ob Manifest und Icons wirklich ausgeliefert werden und in
+   welchem Modus die App gerade läuft. */
+function diagLine(label,value,state){
+  const mark=state===true?'<span class="ok">OK</span>':state===false?'<span class="bad">FEHLT</span>':'';
+  return '<div class="dline"><b>'+label+'</b><span>'+value+' '+mark+'</span></div>';
+}
+async function checkUrl(u){
+  try{const r=await fetch(u,{cache:'no-store'});return r.ok?r:null;}catch(e){return null;}
+}
+async function runDiag(){
+  const box=document.getElementById('diaglist');
+  box.innerHTML='<div class="dline">Prüfe …</div>';
+  document.getElementById('diag').classList.add('show');
+
+  const base=location.href.replace(/[^/]*$/,'');
+  const standalone=window.matchMedia('(display-mode: standalone)').matches
+                 ||window.navigator.standalone===true;
+  let out='';
+  out+=diagLine('Version','v8');
+  out+=diagLine('Adresse',base);
+  out+=diagLine('HTTPS',location.protocol,location.protocol==='https:');
+  out+=diagLine('Modus',standalone?'App (ohne Browserleiste)':'im Browser');
+
+  const link=document.querySelector('link[rel="manifest"]');
+  out+=diagLine('Manifest verlinkt',link?link.getAttribute('href'):'nein',!!link);
+
+  if(link){
+    const r=await checkUrl(new URL(link.getAttribute('href'),location.href).href);
+    if(!r){out+=diagLine('manifest.json','nicht erreichbar (404?)',false);}
+    else{
+      try{
+        const m=await r.json();
+        out+=diagLine('manifest.json','gelesen',true);
+        out+=diagLine('name',m.name||'—',!!(m.name||m.short_name));
+        out+=diagLine('display',m.display||'—',m.display==='standalone');
+        out+=diagLine('start_url',m.start_url||'—',!!m.start_url);
+        const sizes=(m.icons||[]).map(i=>i.sizes).join(' ');
+        const has192=/192x192/.test(sizes),has512=/512x512/.test(sizes);
+        out+=diagLine('Icons im Manifest',sizes||'keine',has192&&has512);
+        for(const ic of (m.icons||[])){
+          const ok=await checkUrl(new URL(ic.src,r.url).href);
+          out+=diagLine('Datei '+ic.src,ok?'erreichbar':'nicht erreichbar',!!ok);
+        }
+      }catch(e){out+=diagLine('manifest.json','kein gültiges JSON',false);}
+    }
+  }
+  box.innerHTML=out;
+}
+document.getElementById('diagclose').addEventListener('click',()=>
+  document.getElementById('diag').classList.remove('show'));
+addLP(document.getElementById('ver'),runDiag);
 
 document.getElementById('heute-btn').addEventListener('click',()=>{
   const r=document.querySelector('.is-cur');
