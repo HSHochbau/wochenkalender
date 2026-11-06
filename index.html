@@ -5,45 +5,77 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="color-scheme" content="only light">
+<meta name="color-scheme" content="light dark">
 <meta http-equiv="Cache-Control" content="no-store, max-age=0">
 <meta name="theme-color" content="#004f92">
-<meta name="supported-color-schemes" content="light">
+<meta name="supported-color-schemes" content="light dark">
 <title>WochenApp</title>
 <style>
 :root{
-  /* "only light" ist der von Chrome dokumentierte Opt-out aus dem
-     Auto Dark Theme auf Android. Wichtig ist die Wortreihenfolge. */
-  color-scheme:only light;
+  /* Die Seite meldet, dass sie beide Schemata selbst beherrscht.
+     Dadurch rechnet der WebView von WhatsApp und Co. die Seite nicht
+     selbst dunkel, sondern nimmt die Regeln im Dark-Block weiter unten,
+     und die enthalten bewusst dieselben hellen Farben.
+     Mit einem Opt-out greift dieser Dark-Block NICHT, dann dunkelt
+     der WebView wieder selbst ab. */
+  color-scheme:light dark;
   --blau:#004f92;
   --blau-hell:#3b82c4;
   --blau-dunkel:#003a6e;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;forced-color-adjust:none}
-html{-webkit-text-size-adjust:100%;color-scheme:only light}
-body,#hdr,#yrbar,#app,#popup,#toast{color-scheme:only light}
+html{-webkit-text-size-adjust:100%}
 html,body{height:100%;background:#bcbcc2;color:#1c1c1e;
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
   overscroll-behavior:none}
 @media (prefers-color-scheme:dark){
+  /* Der "Dunkelmodus" dieser App ist bewusst dieselbe helle Darstellung
+     wie am iPhone. Jede farbgebende Regel steht hier noch einmal, damit
+     nichts übrig bleibt, das ein Browser selbst abdunkeln könnte. */
   :root{--blau:#004f92;--blau-hell:#3b82c4;--blau-dunkel:#003a6e}
   html,body{background:#bcbcc2;color:#1c1c1e}
+
+  #hdr{background:linear-gradient(to bottom,var(--blau-hell) 0%,var(--blau) 52%,var(--blau-dunkel) 100%);
+       border-bottom-color:#002a52}
+  #hdr-title{color:#fff}
+  #yrbar{background:linear-gradient(to bottom,#6e6e73,#4d4d52);color:#fff}
+  #yrnum{color:#fff}
+  #ver{color:rgba(255,255,255,.45)}
+  #heute-btn{background:linear-gradient(to bottom,rgba(255,255,255,.28),rgba(255,255,255,.1));
+             border-color:rgba(0,0,0,.3);color:#fff}
+
   .wrow{background:linear-gradient(to bottom,#f4f4f7 0%,#e2e2e6 100%);border-bottom-color:#b6b6bc}
-  .wrow.is-cur{background:linear-gradient(to bottom,#c9dcf0 0%,#a8c6e6 100%)}
-  .kwbox{background:linear-gradient(to bottom,#ffffff 0%,#e9e9ee 100%)}
+  .wrow.is-cur{background:linear-gradient(to bottom,#c9dcf0 0%,#a8c6e6 100%);border-bottom-color:#7aa3cd}
+  .wrow.sel-a{background:linear-gradient(to bottom,#bcd4ee 0%,#98bce2 100%);outline-color:var(--blau)}
+  .wrow.sel-b{background:linear-gradient(to bottom,#d5e4f4 0%,#bcd2ea 100%);outline-color:var(--blau)}
+  .wrow.pressing{background:linear-gradient(to bottom,#d5e4f4,#bcd2ea)}
+
+  .kwbox{background:linear-gradient(to bottom,#ffffff 0%,#e9e9ee 100%);border-color:var(--blau)}
   .kwnum{color:#1c1c1e}
   .is-cur .kwbox{background:linear-gradient(to bottom,var(--blau-hell),var(--blau) 60%,var(--blau-dunkel))}
   .is-cur .kwnum{color:#fff}
+
   .mrow{background:linear-gradient(to bottom,#fdfdfe,#ececf0)}
   .mlbl{color:#8a8a8e}
+
   .dc{background:linear-gradient(to bottom,#ffffff 0%,#e6e6ea 100%)}
   .dn{color:#3a3a3e}
   .dc.off{background:linear-gradient(to bottom,rgba(255,255,255,.55),rgba(230,230,234,.45))}
   .dc.off .dn{color:#a9a9af}
-  .dc.td{background:linear-gradient(to bottom,var(--blau-hell),var(--blau) 60%,var(--blau-dunkel))}
+  .dc.td{background:linear-gradient(to bottom,var(--blau-hell),var(--blau) 60%,var(--blau-dunkel));
+         border-color:var(--blau-dunkel)}
   .dc.td .dn{color:#fff}
+  .hdot{background:var(--blau)}
+  .dc.td .hdot{background:rgba(255,255,255,.9)}
+  .ast{color:var(--blau)}
+  .dc.td .ast{color:#fff}
   .chev{color:#9a9aa0}
+
+  #popup{background:linear-gradient(to bottom,var(--blau-hell),var(--blau) 30%,var(--blau-dunkel));color:#fff}
+  .pstat{background:linear-gradient(to bottom,rgba(255,255,255,.2),rgba(255,255,255,.08))}
+  #toast{background:rgba(20,20,24,.92);color:#fff}
 }
+
 body{padding-top:calc(80px + env(safe-area-inset-top))}
 body{-webkit-touch-callout:none}
 
@@ -223,7 +255,7 @@ body{-webkit-touch-callout:none}
   <div id="hdr-title">HUTER &amp; SÖHNE</div>
 </div>
 <div id="yrbar">
-  <span id="yrleft"><span id="yrnum">–</span><span id="ver">v5</span></span>
+  <span id="yrleft"><span id="yrnum">–</span><span id="ver">v6</span></span>
   <button id="heute-btn">HEUTE</button>
 </div>
 <div id="app"></div>
