@@ -5,23 +5,22 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="only light">
 <meta name="theme-color" content="#004f92">
-<meta name="supported-color-schemes" content="light dark">
+<meta name="supported-color-schemes" content="light">
 <title>WochenApp</title>
 <style>
 :root{
-  /* "light dark" signalisiert: die Seite kümmert sich selbst um das Farbschema.
-     Dadurch schaltet Chrome/Samsung Internet auf Android die automatische
-     Dunkel-Umrechnung (Auto Dark Mode) ab. Die Dark-Regeln unten setzen
-     bewusst wieder die hellen Werte, die Darstellung bleibt also wie am iPhone. */
-  color-scheme:light dark;
+  /* "only light" ist der von Chrome dokumentierte Opt-out aus dem
+     Auto Dark Theme auf Android. Wichtig ist die Wortreihenfolge. */
+  color-scheme:only light;
   --blau:#004f92;
   --blau-hell:#3b82c4;
   --blau-dunkel:#003a6e;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;forced-color-adjust:none}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;color-scheme:only light}
+body,#hdr,#yrbar,#app,#popup,#toast{color-scheme:only light}
 html,body{height:100%;background:#bcbcc2;color:#1c1c1e;
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
   overscroll-behavior:none}
@@ -43,10 +42,6 @@ html,body{height:100%;background:#bcbcc2;color:#1c1c1e;
   .dc.td{background:linear-gradient(to bottom,var(--blau-hell),var(--blau) 60%,var(--blau-dunkel))}
   .dc.td .dn{color:#fff}
   .chev{color:#9a9aa0}
-  #ffcard{background:#f2f2f6}
-  .fftitle{color:#1c1c1e}
-  #fftext{background:#fff;color:#1c1c1e;border-color:#c4c4c8}
-  .ffbtn.sek{background:linear-gradient(to bottom,#fff,#e2e2e6);color:#3a3a3e}
 }
 body{padding-top:calc(80px + env(safe-area-inset-top))}
 body{-webkit-touch-callout:none}
@@ -205,47 +200,6 @@ body{-webkit-touch-callout:none}
 .phint{text-align:center;font-size:12px;opacity:.55;margin-top:12px}
 .pclose{text-align:center;font-size:13px;opacity:.7;margin-top:8px;cursor:pointer;padding:10px}
 
-/* ───────── Import-Dialog freie Freitage ───────── */
-#ffdlg{
-  position:fixed;inset:0;z-index:250;display:none;
-  background:rgba(0,0,0,.45);
-}
-#ffdlg.show{display:flex;align-items:flex-end}
-#ffcard{
-  width:100%;background:#f2f2f6;border-radius:18px 18px 0 0;
-  padding:18px 16px calc(20px + env(safe-area-inset-bottom));
-  box-shadow:0 -6px 28px rgba(0,0,0,.4);
-  max-height:85vh;overflow-y:auto;
-}
-.fftitle{font-size:16px;font-weight:700;color:#1c1c1e;text-align:center;margin-bottom:4px}
-.ffsub{font-size:12px;color:#7a7a7e;text-align:center;margin-bottom:12px;line-height:1.45}
-#fftext{
-  width:100%;min-height:130px;border:1px solid #c4c4c8;border-radius:10px;
-  padding:10px;font-size:15px;font-family:inherit;background:#fff;
-  resize:vertical;color:#1c1c1e;
-}
-#fftext:focus{outline:2px solid var(--blau);border-color:transparent}
-.ffstatus{font-size:12px;color:#7a7a7e;margin:8px 2px;min-height:15px}
-.ffstatus.err{color:#c0392b}
-.ffbtns{display:flex;gap:8px;margin-top:6px}
-.ffbtn{
-  flex:1;border:none;border-radius:11px;padding:13px 8px;font-size:15px;font-weight:600;
-  cursor:pointer;font-family:inherit;
-}
-.ffbtn.prim{
-  color:#fff;background:linear-gradient(to bottom,var(--blau-hell),var(--blau) 60%,var(--blau-dunkel));
-  box-shadow:0 1px 2px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.3);
-  text-shadow:0 -1px 1px rgba(0,0,0,.35);
-}
-.ffbtn.sek{background:linear-gradient(to bottom,#fff,#e2e2e6);color:#3a3a3e;
-  box-shadow:0 1px 1px rgba(0,0,0,.18),inset 0 1px 0 #fff;border:.5px solid rgba(0,0,0,.08)}
-.ffbtn:active{opacity:.75}
-#fffile{display:none}
-.ffcsv{
-  display:block;text-align:center;font-size:13px;color:var(--blau);
-  margin-top:12px;padding:8px;cursor:pointer;font-weight:600;
-}
-
 /* Toast */
 #toast{
   position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));
@@ -279,27 +233,6 @@ body{-webkit-touch-callout:none}
   </div>
   <div class="phint" id="p-range"></div>
   <div class="pclose" onclick="clearSel()">✕ Schließen</div>
-</div>
-
-<!-- Import freie Freitage (Long-Press auf Jahrbalken) -->
-<div id="ffdlg">
-  <div id="ffcard">
-    <div class="fftitle">Freie Freitage <span id="ffyear"></span></div>
-    <div class="ffsub">
-      Aus Excel kopieren und hier einfügen.<br>
-      Spalte A: Datum (z.&#8239;B. 13.02.2026) &nbsp;·&nbsp; Spalte B: leer = frei, <b>E</b> = eingearbeitet<br>
-      Gilt nur auf diesem Gerät – für alle Geräte die Liste fix in der Datei hinterlegen.
-    </div>
-    <textarea id="fftext" placeholder="13.02.2026&#10;20.03.2026&#9;E&#10;08.05.2026"></textarea>
-    <div class="ffstatus" id="ffstatus"></div>
-    <div class="ffbtns">
-      <button class="ffbtn sek" onclick="ffClose()">Abbrechen</button>
-      <button class="ffbtn sek" onclick="ffDelete()">Löschen</button>
-      <button class="ffbtn prim" onclick="ffSave()">Speichern</button>
-    </div>
-    <label class="ffcsv" for="fffile">… oder CSV-Datei wählen</label>
-    <input type="file" id="fffile" accept=".csv,.txt">
-  </div>
 </div>
 
 <div id="toast"></div>
@@ -343,39 +276,52 @@ function getH(y){
 }
 function isH(d){return getH(d.getFullYear())[dk(d)]||null}
 
-/* ── Freie Freitage ──
-   FF_BUILTIN steht fix in dieser Datei → auf jedem Gerät vorhanden.
-   Format je Jahr: {free:['JJJJ-MM-TT',…], worked:['JJJJ-MM-TT',…]}
-   Ein Import über den Dialog (localStorage) übersteuert das jeweilige
-   Jahr nur auf dem eigenen Gerät. */
-const FF_BUILTIN={
+/* ══════════════════════════════════════════════════════════════════
+   FREIE FREITAGE  —  hier pflegen, sonst nirgends.
+
+   free   : Freitage, an denen nicht gearbeitet wird
+            → werden grau dargestellt und bei den Arbeitstagen abgezogen
+   worked : eingearbeitete Freitage
+            → bleiben normaler Arbeitstag, bekommen einen Stern (*)
+
+   Schreibweise immer 'JJJJ-MM-TT', Einträge mit Komma trennen.
+   ══════════════════════════════════════════════════════════════════ */
+const FREIE_FREITAGE={
+
   2026:{
     free:[
-      '2026-06-26','2026-07-10','2026-07-31','2026-08-21','2026-09-11',
-      '2026-09-18','2026-10-02','2026-10-23','2026-11-13','2026-12-04'
+      '2026-06-26',   // KW 26
+      '2026-07-10',   // KW 28
+      '2026-07-31',   // KW 31
+      '2026-08-21',   // KW 34
+      '2026-09-11',   // KW 37
+      '2026-09-18',   // KW 38
+      '2026-10-02',   // KW 40
+      '2026-10-23',   // KW 43
+      '2026-11-13',   // KW 46
+      '2026-12-04'    // KW 49
     ],
-    worked:[]   // eingearbeitete Freitage (Stern) hier eintragen
+    worked:[
+      // eingearbeitete Freitage, z. B. '2026-12-11'
+    ]
   },
-  /* Muster für weitere Jahre:
+
   2027:{
-    free:['2027-06-25'],
-    worked:['2027-03-19']
-  },
-  */
+    free:[
+      // Termine für 2027 hier eintragen, z. B. '2027-06-25',
+    ],
+    worked:[
+    ]
+  }
+
 };
+
+/* ── ab hier nichts mehr ändern ── */
 const ffC={};
 function getFF(y){
   if(ffC[y])return ffC[y];
-  let free=null,worked=null;
-  try{
-    const raw=localStorage.getItem('ff-'+y);
-    if(raw){const o=JSON.parse(raw);free=new Set(o.free||[]);worked=new Set(o.worked||[]);}
-  }catch(e){}
-  if(!free){
-    const b=FF_BUILTIN[y];
-    free=new Set(b?b.free:[]);worked=new Set(b?b.worked:[]);
-  }
-  return ffC[y]={free,worked};
+  const b=FREIE_FREITAGE[y];
+  return ffC[y]={free:new Set(b?b.free:[]),worked:new Set(b?b.worked:[])};
 }
 function isFreeDay(d){return getFF(d.getFullYear()).free.has(dk(d))}
 function isWorkedFri(d){return getFF(d.getFullYear()).worked.has(dk(d))}
@@ -586,81 +532,6 @@ function clearSel(){
   if(selB){selB.el.classList.remove('sel-b');selB=null;}
   document.getElementById('popup').classList.remove('show');
 }
-
-/* ── Import freie Freitage ── */
-let ffYear=null;
-
-function ffOpen(y){
-  ffYear=y;
-  document.getElementById('ffyear').textContent=y;
-  const o=getFF(y);
-  const lines=[];
-  [...o.free].sort().forEach(k=>lines.push(fmtDK(k)));
-  [...o.worked].sort().forEach(k=>lines.push(fmtDK(k)+'\tE'));
-  document.getElementById('fftext').value=lines.join('\n');
-  setStatus(o.free.size||o.worked.size
-    ? o.free.size+' freie, '+o.worked.size+' eingearbeitete Freitage vorhanden'
-    : 'Noch keine Einträge für '+y);
-  document.getElementById('ffdlg').classList.add('show');
-}
-function fmtDK(k){const p=k.split('-');return p[2]+'.'+p[1]+'.'+p[0]}
-function setStatus(txt,err){
-  const el=document.getElementById('ffstatus');
-  el.textContent=txt;el.className='ffstatus'+(err?' err':'');
-}
-function ffClose(){document.getElementById('ffdlg').classList.remove('show')}
-
-function parseFF(text,year){
-  const free=[],worked=[],bad=[];
-  text.split(/\r?\n/).forEach(line=>{
-    const t=line.trim();if(!t)return;
-    const parts=t.split(/[\t;,]+/).map(x=>x.trim()).filter(Boolean);
-    const ds=parts[0];
-    let d=null,m;
-    if(m=ds.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\.?$/))d=new Date(+m[3],+m[2]-1,+m[1]);
-    else if(m=ds.match(/^(\d{1,2})\.(\d{1,2})\.?$/))d=new Date(year,+m[2]-1,+m[1]);
-    else if(m=ds.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))d=new Date(+m[1],+m[2]-1,+m[3]);
-    if(!d||isNaN(d)){bad.push(t);return;}
-    const flag=(parts[1]||'').toUpperCase();
-    if(flag==='E'||flag==='*')worked.push(dk(d));else free.push(dk(d));
-  });
-  return{free,worked,bad};
-}
-
-function ffSave(){
-  const r=parseFF(document.getElementById('fftext').value,ffYear);
-  if(r.bad.length){setStatus('Nicht lesbar: '+r.bad.slice(0,3).join(' · '),true);return;}
-  try{
-    localStorage.setItem('ff-'+ffYear,JSON.stringify({free:r.free,worked:r.worked}));
-  }catch(e){setStatus('Speichern fehlgeschlagen',true);return;}
-  Object.keys(ffC).forEach(k=>delete ffC[k]);
-  ffClose();render();
-  showToast(r.free.length+' freie, '+r.worked.length+' eingearbeitete Freitage gespeichert');
-}
-
-function ffDelete(){
-  try{localStorage.removeItem('ff-'+ffYear)}catch(e){}
-  Object.keys(ffC).forEach(k=>delete ffC[k]);
-  document.getElementById('fftext').value='';
-  ffClose();render();
-  showToast('Lokale Einträge für '+ffYear+' gelöscht');
-}
-
-document.getElementById('fffile').addEventListener('change',function(){
-  const f=this.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=()=>{document.getElementById('fftext').value=r.result;setStatus('Datei geladen – bitte Speichern tippen');};
-  r.readAsText(f);
-  this.value='';
-});
-
-document.getElementById('ffdlg').addEventListener('click',function(e){
-  if(e.target===this)ffClose();
-});
-
-addLP(document.getElementById('yrbar'),()=>{if(yrShown)ffOpen(yrShown);});
-['touchstart','mousedown'].forEach(ev=>
-  document.getElementById('heute-btn').addEventListener(ev,e=>e.stopPropagation(),{passive:true}));
 
 document.getElementById('heute-btn').addEventListener('click',()=>{
   const r=document.querySelector('.is-cur');
