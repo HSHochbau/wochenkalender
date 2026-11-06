@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#004f92">
+<meta name="supported-color-schemes" content="light dark">
+<title>WochenApp</title>
+<style>
+:root{
+  /* "light dark" signalisiert: die Seite kümmert sich selbst um das Farbschema.
+     Dadurch schaltet Chrome/Samsung Internet auf Android die automatische
+     Dunkel-Umrechnung (Auto Dark Mode) ab. Die Dark-Regeln unten setzen
+     bewusst wieder die hellen Werte, die Darstellung bleibt also wie am iPhone. */
+  color-scheme:light dark;
+  --blau:#004f92;
+  --blau-hell:#3b82c4;
+  --blau-dunkel:#003a6e;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;forced-color-adjust:none}
+html{-webkit-text-size-adjust:100%}
+html,body{height:100%;background:#bcbcc2;color:#1c1c1e;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
+  overscroll-behavior:none}
+@media (prefers-color-scheme:dark){
+  :root{--blau:#004f92;--blau-hell:#3b82c4;--blau-dunkel:#003a6e}
+  html,body{background:#bcbcc2;color:#1c1c1e}
+  .wrow{background:linear-gradient(to bottom,#f4f4f7 0%,#e2e2e6 100%);border-bottom-color:#b6b6bc}
+  .wrow.is-cur{background:linear-gradient(to bottom,#c9dcf0 0%,#a8c6e6 100%)}
+  .kwbox{background:linear-gradient(to bottom,#ffffff 0%,#e9e9ee 100%)}
+  .kwnum{color:#1c1c1e}
+  .is-cur .kwbox{background:linear-gradient(to bottom,var(--blau-hell),var(--blau) 60%,var(--blau-dunkel))}
+  .is-cur .kwnum{color:#fff}
+  .mrow{background:linear-gradient(to bottom,#fdfdfe,#ececf0)}
+  .mlbl{color:#8a8a8e}
+  .dc{background:linear-gradient(to bottom,#ffffff 0%,#e6e6ea 100%)}
+  .dn{color:#3a3a3e}
+  .dc.off{background:linear-gradient(to bottom,rgba(255,255,255,.55),rgba(230,230,234,.45))}
+  .dc.off .dn{color:#a9a9af}
+  .dc.td{background:linear-gradient(to bottom,var(--blau-hell),var(--blau) 60%,var(--blau-dunkel))}
+  .dc.td .dn{color:#fff}
+  .chev{color:#9a9aa0}
+  #ffcard{background:#f2f2f6}
+  .fftitle{color:#1c1c1e}
+  #fftext{background:#fff;color:#1c1c1e;border-color:#c4c4c8}
+  .ffbtn.sek{background:linear-gradient(to bottom,#fff,#e2e2e6);color:#3a3a3e}
+}
+body{padding-top:calc(80px + env(safe-area-inset-top))}
+body{-webkit-touch-callout:none}
+
+/* ───────── Header: glossy Blau ───────── */
+#hdr{
+  position:fixed;top:0;left:0;right:0;z-index:100;height:calc(48px + env(safe-area-inset-top));
+  padding-top:env(safe-area-inset-top);
+  display:flex;align-items:stretch;
+  background:linear-gradient(to bottom,var(--blau-hell) 0%,var(--blau) 52%,var(--blau-dunkel) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 2px 6px rgba(0,0,0,.35);
+  border-bottom:1px solid #002a52;
+}
+#logo-wrap{width:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+#logo{
+  width:34px;height:34px;border-radius:6px;display:block;
+  box-shadow:0 1px 2px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.2);
+}
+#hdr-title{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding-right:52px; /* gleicht die Logo-Breite aus → Text exakt mittig */
+  color:#fff;font-size:19px;font-weight:800;letter-spacing:3px;
+  text-shadow:0 -1px 1px rgba(0,0,0,.45);font-stretch:condensed;
+  overflow:hidden;white-space:nowrap;
+}
+
+/* ───────── Jahrbalken: fix ganz oben, zeigt Jahr der obersten Woche ───────── */
+#yrbar{
+  position:fixed;top:calc(48px + env(safe-area-inset-top));left:0;right:0;z-index:90;
+  height:31px;
+  background:linear-gradient(to bottom,#6e6e73,#4d4d52);
+  color:#fff;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 8px 0 14px;
+  text-shadow:0 -1px 0 rgba(0,0,0,.5);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 1px 3px rgba(0,0,0,.3);
+  user-select:none;-webkit-user-select:none;
+}
+#yrnum{font-size:17px;font-weight:700;line-height:1}
+#heute-btn{
+  border:none;cursor:pointer;font-family:inherit;
+  background:linear-gradient(to bottom,rgba(255,255,255,.28),rgba(255,255,255,.1));
+  border:.5px solid rgba(0,0,0,.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 1px 1px rgba(0,0,0,.25);
+  color:#fff;font-size:11px;font-weight:700;letter-spacing:1.5px;
+  padding:4px 12px;border-radius:12px;
+  text-shadow:0 -1px 1px rgba(0,0,0,.4);
+}
+#heute-btn:active{background:rgba(0,0,0,.3)}
+#yrbar.pressing{background:linear-gradient(to bottom,#8a8a90,#5d5d63)}
+
+/* ───────── Wochenzeile ───────── */
+.wrow{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 8px 9px 8px;
+  background:linear-gradient(to bottom,#f4f4f7 0%,#e2e2e6 100%);
+  border-bottom:1px solid #b6b6bc;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+  user-select:none;-webkit-user-select:none;position:relative;
+}
+.wrow.is-cur{
+  background:linear-gradient(to bottom,#c9dcf0 0%,#a8c6e6 100%);
+  border-bottom-color:#7aa3cd;
+}
+.wrow.sel-a{outline:3px solid var(--blau);outline-offset:-3px;z-index:2;
+  background:linear-gradient(to bottom,#bcd4ee 0%,#98bce2 100%)}
+.wrow.sel-b{outline:3px dashed var(--blau);outline-offset:-3px;z-index:2;
+  background:linear-gradient(to bottom,#d5e4f4 0%,#bcd2ea 100%)}
+.wrow.pressing{background:linear-gradient(to bottom,#d5e4f4,#bcd2ea)}
+
+/* ───────── KW-Box ───────── */
+.kwbox{
+  width:60px;min-width:60px;height:60px;flex-shrink:0;
+  border:2.5px solid var(--blau);border-radius:13px;
+  background:linear-gradient(to bottom,#ffffff 0%,#e9e9ee 100%);
+  box-shadow:0 1px 2px rgba(0,0,0,.25),inset 0 1px 0 #fff;
+  display:flex;align-items:center;justify-content:center;
+}
+.kwnum{font-size:31px;font-weight:700;color:#1c1c1e;line-height:1;
+  text-shadow:0 1px 0 rgba(255,255,255,.8)}
+.is-cur .kwbox{
+  background:linear-gradient(to bottom,var(--blau-hell),var(--blau) 60%,var(--blau-dunkel));
+  box-shadow:0 1px 3px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.35);
+}
+.is-cur .kwnum{color:#fff;text-shadow:0 -1px 1px rgba(0,0,0,.4)}
+
+/* ───────── Inhalt ───────── */
+.wcnt{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+
+/* Monatspille */
+.mrow{
+  background:linear-gradient(to bottom,#fdfdfe,#ececf0);
+  border-radius:8px;padding:4px 12px;
+  box-shadow:0 1px 1px rgba(0,0,0,.14),inset 0 1px 0 #fff;
+  border:.5px solid rgba(0,0,0,.06);
+}
+.mlbl{font-size:15px;color:#8a8a8e;font-weight:400;line-height:1.25;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;display:block;
+  text-shadow:0 1px 0 rgba(255,255,255,.9)}
+
+/* Tage */
+.drow{display:flex;gap:4px}
+.dc{
+  flex:1;min-width:0;height:38px;border-radius:8px;
+  background:linear-gradient(to bottom,#ffffff 0%,#e6e6ea 100%);
+  box-shadow:0 1px 1px rgba(0,0,0,.16),inset 0 1px 0 #fff;
+  border:.5px solid rgba(0,0,0,.06);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  position:relative;
+}
+.dn{font-size:16px;font-weight:500;color:#3a3a3e;line-height:1;
+  text-shadow:0 1px 0 rgba(255,255,255,.8)}
+
+/* Nicht-Arbeitstage (Sa, So, Feiertage, freie Freitage): einheitlich grau */
+.dc.off{background:linear-gradient(to bottom,rgba(255,255,255,.55),rgba(230,230,234,.45));
+  box-shadow:0 1px 1px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.5)}
+.dc.off .dn{color:#a9a9af}
+
+/* Heute */
+.dc.td{
+  background:linear-gradient(to bottom,var(--blau-hell),var(--blau) 60%,var(--blau-dunkel));
+  box-shadow:0 1px 2px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.35);
+  border-color:var(--blau-dunkel);
+}
+.dc.td .dn{color:#fff;text-shadow:0 -1px 1px rgba(0,0,0,.4)}
+
+/* Feiertagspunkt */
+.hdot{width:5px;height:5px;border-radius:50%;background:var(--blau);flex-shrink:0}
+.dc.td .hdot{background:rgba(255,255,255,.9)}
+
+/* Eingearbeiteter Freitag: normaler Arbeitstag + Stern */
+.ast{position:absolute;top:1px;right:4px;color:var(--blau);font-size:13px;font-weight:700;line-height:1}
+.dc.td .ast{color:#fff}
+
+.chev{color:#9a9aa0;font-size:24px;flex-shrink:0;line-height:1;
+  text-shadow:0 1px 0 rgba(255,255,255,.8);font-weight:300}
+
+/* ───────── Popup Zeitraum ───────── */
+#popup{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:linear-gradient(to bottom,var(--blau-hell),var(--blau) 30%,var(--blau-dunkel));
+  color:#fff;border-radius:18px 18px 0 0;
+  padding:18px 18px calc(24px + env(safe-area-inset-bottom));
+  box-shadow:0 -6px 28px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.3);
+  transform:translateY(110%);transition:transform .3s cubic-bezier(.34,1.4,.64,1);
+}
+#popup.show{transform:translateY(0)}
+.ptitle{font-size:11px;opacity:.75;letter-spacing:1.2px;text-transform:uppercase;
+  margin-bottom:14px;text-align:center;text-shadow:0 -1px 1px rgba(0,0,0,.35)}
+.pstats{display:flex;gap:10px}
+.pstat{flex:1;text-align:center;border-radius:12px;padding:14px 10px;
+  background:linear-gradient(to bottom,rgba(255,255,255,.2),rgba(255,255,255,.08));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.pstat-n{font-size:38px;font-weight:700;line-height:1;text-shadow:0 -1px 1px rgba(0,0,0,.35)}
+.pstat-l{font-size:11px;opacity:.72;margin-top:5px}
+.phint{text-align:center;font-size:12px;opacity:.55;margin-top:12px}
+.pclose{text-align:center;font-size:13px;opacity:.7;margin-top:8px;cursor:pointer;padding:10px}
+
+/* ───────── Import-Dialog freie Freitage ───────── */
+#ffdlg{
+  position:fixed;inset:0;z-index:250;display:none;
+  background:rgba(0,0,0,.45);
+}
+#ffdlg.show{display:flex;align-items:flex-end}
+#ffcard{
+  width:100%;background:#f2f2f6;border-radius:18px 18px 0 0;
+  padding:18px 16px calc(20px + env(safe-area-inset-bottom));
+  box-shadow:0 -6px 28px rgba(0,0,0,.4);
+  max-height:85vh;overflow-y:auto;
+}
+.fftitle{font-size:16px;font-weight:700;color:#1c1c1e;text-align:center;margin-bottom:4px}
+.ffsub{font-size:12px;color:#7a7a7e;text-align:center;margin-bottom:12px;line-height:1.45}
+#fftext{
+  width:100%;min-height:130px;border:1px solid #c4c4c8;border-radius:10px;
+  padding:10px;font-size:15px;font-family:inherit;background:#fff;
+  resize:vertical;color:#1c1c1e;
+}
+#fftext:focus{outline:2px solid var(--blau);border-color:transparent}
+.ffstatus{font-size:12px;color:#7a7a7e;margin:8px 2px;min-height:15px}
+.ffstatus.err{color:#c0392b}
+.ffbtns{display:flex;gap:8px;margin-top:6px}
+.ffbtn{
+  flex:1;border:none;border-radius:11px;padding:13px 8px;font-size:15px;font-weight:600;
+  cursor:pointer;font-family:inherit;
+}
+.ffbtn.prim{
+  color:#fff;background:linear-gradient(to bottom,var(--blau-hell),var(--blau) 60%,var(--blau-dunkel));
+  box-shadow:0 1px 2px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.3);
+  text-shadow:0 -1px 1px rgba(0,0,0,.35);
+}
+.ffbtn.sek{background:linear-gradient(to bottom,#fff,#e2e2e6);color:#3a3a3e;
+  box-shadow:0 1px 1px rgba(0,0,0,.18),inset 0 1px 0 #fff;border:.5px solid rgba(0,0,0,.08)}
+.ffbtn:active{opacity:.75}
+#fffile{display:none}
+.ffcsv{
+  display:block;text-align:center;font-size:13px;color:var(--blau);
+  margin-top:12px;padding:8px;cursor:pointer;font-weight:600;
+}
+
+/* Toast */
+#toast{
+  position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateY(20px);z-index:300;
+  background:rgba(20,20,24,.92);color:#fff;font-size:13px;
+  padding:9px 16px;border-radius:20px;white-space:nowrap;
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  box-shadow:0 4px 14px rgba(0,0,0,.4);
+  max-width:92vw;overflow:hidden;text-overflow:ellipsis;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <div id="logo-wrap"><img id="logo" src="data:image/png;base64,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" alt="Huter &amp; Söhne"></div>
+  <div id="hdr-title">HUTER &amp; SÖHNE</div>
+</div>
+<div id="yrbar">
+  <span id="yrnum">–</span>
+  <button id="heute-btn">HEUTE</button>
+</div>
+<div id="app"></div>
+
+<div id="popup">
+  <div class="ptitle">Zeitraum zwischen markierten Wochen</div>
+  <div class="pstats">
+    <div class="pstat"><div class="pstat-n" id="p-kw">–</div><div class="pstat-l">Kalenderwochen</div></div>
+    <div class="pstat"><div class="pstat-n" id="p-wd">–</div><div class="pstat-l">Arbeitstage</div></div>
+  </div>
+  <div class="phint" id="p-range"></div>
+  <div class="pclose" onclick="clearSel()">✕ Schließen</div>
+</div>
+
+<!-- Import freie Freitage (Long-Press auf Jahrbalken) -->
+<div id="ffdlg">
+  <div id="ffcard">
+    <div class="fftitle">Freie Freitage <span id="ffyear"></span></div>
+    <div class="ffsub">
+      Aus Excel kopieren und hier einfügen.<br>
+      Spalte A: Datum (z.&#8239;B. 13.02.2026) &nbsp;·&nbsp; Spalte B: leer = frei, <b>E</b> = eingearbeitet<br>
+      Gilt nur auf diesem Gerät – für alle Geräte die Liste fix in der Datei hinterlegen.
+    </div>
+    <textarea id="fftext" placeholder="13.02.2026&#10;20.03.2026&#9;E&#10;08.05.2026"></textarea>
+    <div class="ffstatus" id="ffstatus"></div>
+    <div class="ffbtns">
+      <button class="ffbtn sek" onclick="ffClose()">Abbrechen</button>
+      <button class="ffbtn sek" onclick="ffDelete()">Löschen</button>
+      <button class="ffbtn prim" onclick="ffSave()">Speichern</button>
+    </div>
+    <label class="ffcsv" for="fffile">… oder CSV-Datei wählen</label>
+    <input type="file" id="fffile" accept=".csv,.txt">
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const MS=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+
+function easter(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,
+    f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,
+    i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,
+    m=Math.floor((a+11*h+22*l)/451),
+    mo=Math.floor((h+l-7*m+114)/31),
+    da=((h+l-7*m+114)%31)+1;
+  return new Date(y,mo-1,da);
+}
+function dk(d){return d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0')}
+function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r}
+
+/* ── Gesetzliche Feiertage Österreich ── */
+const hC={};
+function getH(y){
+  if(hC[y])return hC[y];
+  const h={},s=(d,n)=>{h[dk(d)]={name:n}};
+  s(new Date(y,0,1),'Neujahr');
+  s(new Date(y,0,6),'Heilige Drei Könige');
+  s(new Date(y,4,1),'Staatsfeiertag');
+  s(new Date(y,7,15),'Maria Himmelfahrt');
+  s(new Date(y,9,26),'Nationalfeiertag');
+  s(new Date(y,10,1),'Allerheiligen');
+  s(new Date(y,11,8),'Maria Empfängnis');
+  s(new Date(y,11,25),'Christtag');
+  s(new Date(y,11,26),'Stephanitag');
+  const e=easter(y);
+  s(addD(e,1),'Ostermontag');
+  s(addD(e,39),'Christi Himmelfahrt');
+  s(addD(e,50),'Pfingstmontag');
+  s(addD(e,60),'Fronleichnam');
+  return hC[y]=h;
+}
+function isH(d){return getH(d.getFullYear())[dk(d)]||null}
+
+/* ── Freie Freitage ──
+   FF_BUILTIN steht fix in dieser Datei → auf jedem Gerät vorhanden.
+   Format je Jahr: {free:['JJJJ-MM-TT',…], worked:['JJJJ-MM-TT',…]}
+   Ein Import über den Dialog (localStorage) übersteuert das jeweilige
+   Jahr nur auf dem eigenen Gerät. */
+const FF_BUILTIN={
+  2026:{
+    free:[
+      '2026-06-26','2026-07-10','2026-07-31','2026-08-21','2026-09-11',
+      '2026-09-18','2026-10-02','2026-10-23','2026-11-13','2026-12-04'
+    ],
+    worked:[]   // eingearbeitete Freitage (Stern) hier eintragen
+  },
+  /* Muster für weitere Jahre:
+  2027:{
+    free:['2027-06-25'],
+    worked:['2027-03-19']
+  },
+  */
+};
+const ffC={};
+function getFF(y){
+  if(ffC[y])return ffC[y];
+  let free=null,worked=null;
+  try{
+    const raw=localStorage.getItem('ff-'+y);
+    if(raw){const o=JSON.parse(raw);free=new Set(o.free||[]);worked=new Set(o.worked||[]);}
+  }catch(e){}
+  if(!free){
+    const b=FF_BUILTIN[y];
+    free=new Set(b?b.free:[]);worked=new Set(b?b.worked:[]);
+  }
+  return ffC[y]={free,worked};
+}
+function isFreeDay(d){return getFF(d.getFullYear()).free.has(dk(d))}
+function isWorkedFri(d){return getFF(d.getFullYear()).worked.has(dk(d))}
+
+function isWD(d){
+  const w=d.getDay();if(w===0||w===6)return false;
+  if(isH(d))return false;
+  if(isFreeDay(d))return false;
+  return true;
+}
+
+function isoW(d){
+  const u=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const wd=u.getUTCDay()||7;u.setUTCDate(u.getUTCDate()+4-wd);
+  const y1=new Date(Date.UTC(u.getUTCFullYear(),0,1));
+  return Math.ceil(((u-y1)/864e5+1)/7);
+}
+function isoWY(d){
+  const u=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const wd=u.getUTCDay()||7;u.setUTCDate(u.getUTCDate()+4-wd);
+  return u.getUTCFullYear();
+}
+function weekMon(iy,iw){
+  const j4=new Date(iy,0,4),j4d=j4.getDay()||7,m=new Date(j4);
+  m.setDate(j4.getDate()-(j4d-1)+(iw-1)*7);return m;
+}
+
+const today=new Date();today.setHours(0,0,0,0);
+const todayK=dk(today),curKW=isoW(today),curKWY=isoWY(today);
+let selA=null,selB=null;
+
+function buildWeeks(){
+  const start=addD(weekMon(curKWY,curKW),-54*7);
+  return Array.from({length:120},(_,i)=>{
+    const mon=addD(start,i*7);
+    return{iw:isoW(mon),iwy:isoWY(mon),days:Array.from({length:7},(_,d)=>addD(mon,d))};
+  });
+}
+function mlabel(days){
+  const a=days[0],b=days[6];
+  return a.getMonth()===b.getMonth()?MONTHS[a.getMonth()]:MS[a.getMonth()]+' – '+MS[b.getMonth()];
+}
+
+let toastTmr=null;
+function showToast(txt){
+  const t=document.getElementById('toast');
+  t.textContent=txt;t.classList.add('show');
+  clearTimeout(toastTmr);
+  toastTmr=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* Long-Press-Helfer */
+/* Long-Press mit Bewegungstoleranz.
+   Android meldet schon bei minimalem Fingerzittern ein touchmove – mit der
+   alten Logik ("jede Bewegung bricht ab") kam der lange Druck dort praktisch
+   nie zustande, deshalb liess sich keine Woche markieren und es wurde nichts
+   gerechnet. iOS unterdrückt solche Mikro-Bewegungen, darum fiel es dort nicht auf. */
+const LP_TOL=14;     // Pixel, die der Finger wandern darf
+const LP_TIME=550;   // Haltedauer in Millisekunden
+let lpFired=0;       // Zeitstempel, um den Klick nach dem Long-Press zu schlucken
+
+function addLP(el,fn){
+  let tmr=null,sx=0,sy=0;
+  function start(x,y){
+    sx=x;sy=y;
+    el.classList.add('pressing');
+    clearTimeout(tmr);
+    tmr=setTimeout(()=>{
+      el.classList.remove('pressing');
+      lpFired=Date.now();
+      try{navigator.vibrate&&navigator.vibrate(40);}catch(e){}
+      fn();
+    },LP_TIME);
+  }
+  function move(x,y){
+    if(Math.abs(x-sx)>LP_TOL||Math.abs(y-sy)>LP_TOL)cancel();
+  }
+  function cancel(){clearTimeout(tmr);tmr=null;el.classList.remove('pressing');}
+
+  el.addEventListener('touchstart',e=>{const t=e.touches[0];start(t.clientX,t.clientY);},{passive:true});
+  el.addEventListener('touchmove',e=>{const t=e.touches[0];move(t.clientX,t.clientY);},{passive:true});
+  el.addEventListener('touchend',cancel);
+  el.addEventListener('touchcancel',cancel);
+  el.addEventListener('contextmenu',e=>e.preventDefault());  // Android-Auswahlmenü unterdrücken
+  el.addEventListener('mousedown',e=>start(e.clientX,e.clientY));
+  el.addEventListener('mousemove',e=>move(e.clientX,e.clientY));
+  el.addEventListener('mouseup',cancel);
+  el.addEventListener('mouseleave',cancel);
+  el.addEventListener('scroll',cancel,{passive:true});
+}
+window.addEventListener('scroll',()=>{document.querySelectorAll('.pressing').forEach(e=>e.classList.remove('pressing'));},{passive:true});
+
+/* ── Jahrbalken ── */
+const rowsIdx=[];
+let yrShown=null;
+function topH(){
+  return document.getElementById('hdr').offsetHeight+document.getElementById('yrbar').offsetHeight;
+}
+function updateYrBar(){
+  if(!rowsIdx.length)return;
+  const t=document.getElementById('yrbar').getBoundingClientRect().bottom;
+  let lo=0,hi=rowsIdx.length-1,ans=rowsIdx.length-1;
+  while(lo<=hi){
+    const m=(lo+hi)>>1,r=rowsIdx[m].el;
+    if(r.offsetTop+r.offsetHeight-window.scrollY>t){ans=m;hi=m-1;}else lo=m+1;
+  }
+  const y=rowsIdx[ans].iwy;
+  if(y!==yrShown){yrShown=y;document.getElementById('yrnum').textContent=y;}
+}
+let scrTick=false;
+window.addEventListener('scroll',()=>{
+  if(!scrTick){scrTick=true;requestAnimationFrame(()=>{scrTick=false;updateYrBar();});}
+},{passive:true});
+
+function render(){
+  const app=document.getElementById('app');
+  app.innerHTML='';
+  const weeks=buildWeeks();
+  let curRow=null;
+  rowsIdx.length=0;
+  const frag=document.createDocumentFragment();
+
+  weeks.forEach(({iw,iwy,days})=>{
+    const isCur=iw===curKW&&iwy===curKWY;
+    const row=document.createElement('div');
+    row.className='wrow'+(isCur?' is-cur':'');
+    if(isCur)curRow=row;
+
+    const kb=document.createElement('div');kb.className='kwbox';
+    kb.innerHTML='<span class="kwnum">'+iw+'</span>';
+
+    const cnt=document.createElement('div');cnt.className='wcnt';
+
+    const mr=document.createElement('div');mr.className='mrow';
+    const ml=document.createElement('span');ml.className='mlbl';ml.textContent=mlabel(days);
+    mr.appendChild(ml);
+
+    const dr=document.createElement('div');dr.className='drow';
+    days.forEach((d,i)=>{
+      const dc=document.createElement('div');dc.className='dc';
+      const isWE=i>=5,isTd=dk(d)===todayK,hol=isH(d),free=isFreeDay(d),worked=isWorkedFri(d);
+      if(isWE||hol||free)dc.classList.add('off');
+      if(isTd)dc.classList.add('td');
+      const dn=document.createElement('div');dn.className='dn';dn.textContent=d.getDate();
+      dc.appendChild(dn);
+      if(hol){
+        const dot=document.createElement('div');dot.className='hdot';dc.appendChild(dot);
+        dc.addEventListener('click',ev=>{ev.stopPropagation();if(Date.now()-lpFired<700)return;showToast(d.getDate()+'. '+MONTHS[d.getMonth()]+': '+hol.name);});
+      }else if(free){
+        dc.addEventListener('click',ev=>{ev.stopPropagation();if(Date.now()-lpFired<700)return;showToast(d.getDate()+'. '+MONTHS[d.getMonth()]+': Freier Freitag');});
+      }else if(worked){
+        const a=document.createElement('span');a.className='ast';a.textContent='*';dc.appendChild(a);
+        dc.addEventListener('click',ev=>{ev.stopPropagation();if(Date.now()-lpFired<700)return;showToast(d.getDate()+'. '+MONTHS[d.getMonth()]+': Eingearbeiteter Freitag');});
+      }
+      dr.appendChild(dc);
+    });
+
+    cnt.appendChild(mr);cnt.appendChild(dr);
+    const chv=document.createElement('div');chv.className='chev';chv.textContent='›';
+    row.appendChild(kb);row.appendChild(cnt);row.appendChild(chv);
+
+    addLP(row,()=>lp(row,iw,iwy));
+    rowsIdx.push({el:row,iwy});
+    frag.appendChild(row);
+  });
+  app.appendChild(frag);
+
+  setTimeout(()=>{
+    if(curRow){
+      const rh=curRow.offsetHeight+1;
+      window.scrollTo({top:Math.max(0,curRow.offsetTop-rh*2-topH()),behavior:'instant'});
+    }
+    updateYrBar();
+  },40);
+}
+
+/* ── Wochen-Markierung / Zeitraumrechnung ── */
+function lp(row,iw,iwy){
+  if(!selA){selA={iw,iwy,el:row};row.classList.add('sel-a');}
+  else if(selA.iw===iw&&selA.iwy===iwy){clearSel();}
+  else{
+    if(selB)selB.el.classList.remove('sel-b');
+    selB={iw,iwy,el:row};row.classList.add('sel-b');calc();
+  }
+}
+
+function calc(){
+  if(!selA||!selB)return;
+  let a=weekMon(selA.iwy,selA.iw),b=weekMon(selB.iwy,selB.iw);
+  if(a>b)[a,b]=[b,a];
+  // Beide markierte Wochen werden mitgezählt:
+  // KW-Anzahl = inklusive Start- und Endwoche;
+  // Arbeitstage = Montag der ersten bis Freitag der letzten Woche.
+  const wks=Math.round((b-a)/(7*864e5))+1;
+  let wd=0,c=new Date(a),end=addD(b,4);
+  while(c<=end){if(isWD(c))wd++;c=addD(c,1);}
+  document.getElementById('p-kw').textContent=wks;
+  document.getElementById('p-wd').textContent=wd;
+  const lo=(a.getTime()===weekMon(selA.iwy,selA.iw).getTime())?selA:selB;
+  const hi=(lo===selA)?selB:selA;
+  document.getElementById('p-range').textContent=
+    'KW '+lo.iw+'/'+lo.iwy+' bis KW '+hi.iw+'/'+hi.iwy+' · beide Wochen mitgezählt';
+  document.getElementById('popup').classList.add('show');
+}
+
+function clearSel(){
+  if(selA){selA.el.classList.remove('sel-a');selA=null;}
+  if(selB){selB.el.classList.remove('sel-b');selB=null;}
+  document.getElementById('popup').classList.remove('show');
+}
+
+/* ── Import freie Freitage ── */
+let ffYear=null;
+
+function ffOpen(y){
+  ffYear=y;
+  document.getElementById('ffyear').textContent=y;
+  const o=getFF(y);
+  const lines=[];
+  [...o.free].sort().forEach(k=>lines.push(fmtDK(k)));
+  [...o.worked].sort().forEach(k=>lines.push(fmtDK(k)+'\tE'));
+  document.getElementById('fftext').value=lines.join('\n');
+  setStatus(o.free.size||o.worked.size
+    ? o.free.size+' freie, '+o.worked.size+' eingearbeitete Freitage vorhanden'
+    : 'Noch keine Einträge für '+y);
+  document.getElementById('ffdlg').classList.add('show');
+}
+function fmtDK(k){const p=k.split('-');return p[2]+'.'+p[1]+'.'+p[0]}
+function setStatus(txt,err){
+  const el=document.getElementById('ffstatus');
+  el.textContent=txt;el.className='ffstatus'+(err?' err':'');
+}
+function ffClose(){document.getElementById('ffdlg').classList.remove('show')}
+
+function parseFF(text,year){
+  const free=[],worked=[],bad=[];
+  text.split(/\r?\n/).forEach(line=>{
+    const t=line.trim();if(!t)return;
+    const parts=t.split(/[\t;,]+/).map(x=>x.trim()).filter(Boolean);
+    const ds=parts[0];
+    let d=null,m;
+    if(m=ds.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\.?$/))d=new Date(+m[3],+m[2]-1,+m[1]);
+    else if(m=ds.match(/^(\d{1,2})\.(\d{1,2})\.?$/))d=new Date(year,+m[2]-1,+m[1]);
+    else if(m=ds.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))d=new Date(+m[1],+m[2]-1,+m[3]);
+    if(!d||isNaN(d)){bad.push(t);return;}
+    const flag=(parts[1]||'').toUpperCase();
+    if(flag==='E'||flag==='*')worked.push(dk(d));else free.push(dk(d));
+  });
+  return{free,worked,bad};
+}
+
+function ffSave(){
+  const r=parseFF(document.getElementById('fftext').value,ffYear);
+  if(r.bad.length){setStatus('Nicht lesbar: '+r.bad.slice(0,3).join(' · '),true);return;}
+  try{
+    localStorage.setItem('ff-'+ffYear,JSON.stringify({free:r.free,worked:r.worked}));
+  }catch(e){setStatus('Speichern fehlgeschlagen',true);return;}
+  Object.keys(ffC).forEach(k=>delete ffC[k]);
+  ffClose();render();
+  showToast(r.free.length+' freie, '+r.worked.length+' eingearbeitete Freitage gespeichert');
+}
+
+function ffDelete(){
+  try{localStorage.removeItem('ff-'+ffYear)}catch(e){}
+  Object.keys(ffC).forEach(k=>delete ffC[k]);
+  document.getElementById('fftext').value='';
+  ffClose();render();
+  showToast('Lokale Einträge für '+ffYear+' gelöscht');
+}
+
+document.getElementById('fffile').addEventListener('change',function(){
+  const f=this.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{document.getElementById('fftext').value=r.result;setStatus('Datei geladen – bitte Speichern tippen');};
+  r.readAsText(f);
+  this.value='';
+});
+
+document.getElementById('ffdlg').addEventListener('click',function(e){
+  if(e.target===this)ffClose();
+});
+
+addLP(document.getElementById('yrbar'),()=>{if(yrShown)ffOpen(yrShown);});
+['touchstart','mousedown'].forEach(ev=>
+  document.getElementById('heute-btn').addEventListener(ev,e=>e.stopPropagation(),{passive:true}));
+
+document.getElementById('heute-btn').addEventListener('click',()=>{
+  const r=document.querySelector('.is-cur');
+  if(r)window.scrollTo({top:Math.max(0,r.offsetTop-(r.offsetHeight+1)*2-topH()),behavior:'smooth'});
+});
+
+render();
+</script>
+</body>
+</html>
